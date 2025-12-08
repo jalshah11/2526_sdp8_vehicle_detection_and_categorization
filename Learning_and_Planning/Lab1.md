@@ -44,37 +44,7 @@ The system detects vehicles using YOLO, extracts number plates using ANPR, reads
 
 ---
 
-## 📂 Folder Structure
-vehicle_parking_system/
-│
-├─ backend/
-│ ├─ app/
-│ │ ├─ main.py
-│ │ ├─ config.py
-│ │ ├─ models.py
-│ │ ├─ schemas.py
-│ │ ├─ database.py
-│ │ ├─ services/
-│ │ │ ├─ detection_service.py
-│ │ │ ├─ parking_service.py
-│ │ ├─ routers/
-│ │ │ ├─ stats_router.py
-│ │ │ ├─ sessions_router.py
-│ │ │ ├─ events_router.py
-│ │ │ ├─ debug_router.py
-│ │ ├─ ws/live_ws.py
-│ │ └─ utils/
-│ │ ├─ ocr_utils.py
-│ │ ├─ plate_cleaner.py
-│ │ ├─ line_crossing.py
-│ └─ requirements.txt
-│
-└─ frontend/
-├─ src/
-├─ package.json
 
-
----
 
 ## ⚡ How It Works (Short Summary)
 1. FastAPI reads video stream in background.
