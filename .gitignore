@@ -5,3 +5,4 @@ __pycache__/
 .pytest_cache/
 backend/output/
 WARP.md
+yolov8*.pt

@@ -12,6 +12,11 @@ class VehicleCategory(str, Enum):
     truck = "truck"
 
 
+class CrossingDirection(str, Enum):
+    in_lane = "in"
+    out_lane = "out"
+
+
 COCO_CLASS_TO_CATEGORY: Dict[str, VehicleCategory] = {
     "car": VehicleCategory.car,
     "bus": VehicleCategory.bus,
@@ -46,10 +51,38 @@ class Counts:
         }
     )
 
+    # Directional totals (interpreting the line as separating "in" vs "out")
+    total_in: int = 0
+    total_out: int = 0
+    by_category_in: Dict[VehicleCategory, int] = field(
+        default_factory=lambda: {
+            VehicleCategory.car: 0,
+            VehicleCategory.bike: 0,
+            VehicleCategory.bus: 0,
+            VehicleCategory.truck: 0,
+        }
+    )
+    by_category_out: Dict[VehicleCategory, int] = field(
+        default_factory=lambda: {
+            VehicleCategory.car: 0,
+            VehicleCategory.bike: 0,
+            VehicleCategory.bus: 0,
+            VehicleCategory.truck: 0,
+        }
+    )
+
     def to_jsonable(self) -> dict:
         return {
             "total": self.total,
             "by_category": {k.value: v for k, v in self.by_category.items()},
+            "in": {
+                "total": self.total_in,
+                "by_category": {k.value: v for k, v in self.by_category_in.items()},
+            },
+            "out": {
+                "total": self.total_out,
+                "by_category": {k.value: v for k, v in self.by_category_out.items()},
+            },
         }
 
 
@@ -59,10 +92,17 @@ class LineCrossingCounter:
     - Only counts COCO classes present in COCO_CLASS_TO_CATEGORY.
     - Each track_id is counted at most once (first time it crosses).
     - Category is chosen as the most frequently observed mapped category for that track.
+
+    Direction:
+    - We also keep simple directional counters.
+    - By default, motion from top -> bottom across the line is counted as "in".
+      Motion from bottom -> top is counted as "out".
+    - Set invert_directions=True if your camera orientation is opposite.
     """
 
-    def __init__(self, line: Line):
+    def __init__(self, line: Line, *, invert_directions: bool = False):
         self._line = line
+        self._invert_directions = invert_directions
         self._last_y_by_track: Dict[int, float] = {}
         self._counted_track_ids: Set[int] = set()
         self._category_votes: Dict[int, Dict[VehicleCategory, int]] = {}
@@ -91,6 +131,13 @@ class LineCrossingCounter:
         line_y = self._line.y_px
         return (prev_y < line_y <= y) or (prev_y > line_y >= y)
 
+    def _direction(self, prev_y: float, y: float) -> CrossingDirection:
+        # y increasing means object moving down in the image.
+        is_in = y > prev_y
+        if self._invert_directions:
+            is_in = not is_in
+        return CrossingDirection.in_lane if is_in else CrossingDirection.out_lane
+
     def update(self, observations: Iterable[TrackObservation]) -> None:
         for obs in observations:
             self._vote_category(obs.track_id, obs.coco_class_name)
@@ -114,3 +161,11 @@ class LineCrossingCounter:
             self._counted_track_ids.add(obs.track_id)
             self.counts.total += 1
             self.counts.by_category[category] += 1
+
+            direction = self._direction(prev_y, y)
+            if direction == CrossingDirection.in_lane:
+                self.counts.total_in += 1
+                self.counts.by_category_in[category] += 1
+            else:
+                self.counts.total_out += 1
+                self.counts.by_category_out[category] += 1

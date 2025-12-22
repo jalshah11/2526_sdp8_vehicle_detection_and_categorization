@@ -1,44 +1,30 @@
 # Vehicle Detection and Categorization (Unique Count + Analytics)
 
-Last updated: 2025-12-15
+Last updated: 2025-12-22
 
-## What is implemented (as of 2025-12-15)
-This repository currently implements a minimal backend that counts vehicles **uniquely** (per tracked object) from a **video file** and produces category-wise analytics.
-
-Implemented features:
-- YOLOv8 **detection + tracking** on a video file
-- **Unique counting** using a **horizontal virtual line** (a vehicle is counted once when its centroid crosses the line, either direction)
-- Category-wise counts:
-  - `car`
-  - `bike` (includes `bicycle` + `motorcycle` YOLO classes)
-  - `bus`
-  - `truck`
-- Writes analytics JSON to `backend/output/counts.json`
+## Lab-2 (15-12-2025)
+Summary of what was built in Lab-2:
+- Minimal backend pipeline to process a video file and produce analytics
+- YOLOv8-based vehicle detection/tracking
+- Virtual horizontal line crossing for unique vehicle counting
+- Category-wise counts: `car`, `bike` (`bicycle` + `motorcycle`), `bus`, `truck`
+- Analytics JSON written to `backend/output/counts.json`
 - Minimal API server:
   - `GET /health`
   - `GET /api/analytics` (serves the latest `backend/output/counts.json`)
 
-## Quickstart (PowerShell)
-Create venv + install deps:
-- `py -m venv .venv`
-- `.\.venv\Scripts\Activate.ps1`
-- `py -m pip install -r backend\requirements.txt`
-- `py -m pip install -r backend\requirements-dev.txt`
-
-Run vehicle counting on a video (prints JSON and writes `backend/output/counts.json`):
-- `py -m backend.scripts.count_video --video path\to\video.mp4 --line-y 0.5`
-
-Run with preview (press `q` to quit):
-- `py -m backend.scripts.count_video --video path\to\video.mp4 --line-y 0.5 --show`
-
-Start the API server:
-- `py -m uvicorn backend.app.main:app --reload --port 8000`
-
-Run tests:
-- `py -m pytest`
+## Lab-3 (22-12-2025)
+Summary of what was added/changed in Lab-3:
+- Annotated output video generation (`backend/output/annotated.mp4`) with bounding boxes + labels
+- Directional counting for line crossings:
+  - `in` = top -> bottom across the line
+  - `out` = bottom -> top across the line
+  - `--invert-directions` to swap in/out if the camera orientation is opposite
+- Replaced Ultralytics built-in tracking in the script with a basic nearest-neighbor tracker to avoid optional native deps (e.g. `lap`)
 
 ## Code layout (high level)
-- `backend/scripts/count_video.py`: entrypoint that runs YOLO tracking and produces analytics JSON
-- `backend/vehicle_counting/line_counter.py`: pure-Python virtual-line crossing counter (unique per track)
+- `backend/scripts/count_video.py`: video inference entrypoint (detects vehicles, writes annotated video, writes counts JSON)
+- `backend/vehicle_counting/simple_tracker.py`: basic nearest-neighbor tracker (assigns stable-ish IDs)
+- `backend/vehicle_counting/line_counter.py`: virtual-line crossing counter (unique per track + in/out)
 - `backend/app/main.py`: FastAPI app serving the latest analytics JSON
 - `backend/tests/test_line_counter.py`: unit tests for line crossing + unique counting
