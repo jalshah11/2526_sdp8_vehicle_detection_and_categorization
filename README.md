@@ -1,6 +1,10 @@
-# Vehicle Detection and Categorization (Unique Count + Analytics)
+# Vehicle Detection and Categorization
 
 Last updated: 2025-12-22
+
+## Lab-1 (08-12-2025)
+In Lab-1, I explored and learned about YOLO object detection models.
+Notes/highlights are available in the `Learning_and_Planning/` folder.
 
 ## Lab-2 (15-12-2025)
 Summary of what was built in Lab-2:
