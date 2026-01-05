@@ -1,6 +1,6 @@
 # Vehicle Detection and Categorization
 
-Last updated: 2025-12-22
+Last updated: 05-01-2026
 
 ## Lab-1 (08-12-2025)
 In Lab-1, I explored and learned about YOLO object detection models.
