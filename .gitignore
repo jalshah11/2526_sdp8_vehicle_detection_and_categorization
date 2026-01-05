@@ -6,5 +6,3 @@ __pycache__/
 backend/output/
 WARP.md
 yolov8*.pt
-README.md
-frontend/README.md
