@@ -12,6 +12,8 @@ function Dashboard() {
     line_y: 0.5,
     invert_directions: false,
     conf: 0.25,
+
+
   });
 
   const handleProcessVideo = async (videoPath) => {

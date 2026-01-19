@@ -1,53 +1,32 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Dashboard from './components/Dashboard';
 import { healthCheck } from './services/api';
 
 function App() {
-  const [isBackendConnected, setIsBackendConnected] = useState(false);
-  const [backendError, setBackendError] = useState(null);
+  const [backendStatus, setBackendStatus] = useState('checking');
 
   useEffect(() => {
-    const checkBackend = async () => {
-      try {
-        await healthCheck();
-        setIsBackendConnected(true);
-        setBackendError(null);
-      } catch (error) {
-        setIsBackendConnected(false);
-        setBackendError(error.message || 'Failed to connect to backend');
-      }
-    };
-
-    checkBackend();
-    const interval = setInterval(checkBackend, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
+    // Simple health check to ensure backend is reachable
+    healthCheck()
+      .then(() => setBackendStatus('online'))
+      .catch(() => setBackendStatus('offline'));
   }, []);
 
-  return (
-    <div className="min-h-screen bg-slate-900">
-      {!isBackendConnected && (
-        <div className="bg-red-900/30 border-l-4 border-red-500 text-red-200 p-4 mb-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">
-                Backend not connected. Please ensure the FastAPI server is running on port 8000.
-              </p>
-              {backendError && (
-                <p className="text-xs mt-1 text-red-300">Error: {backendError}</p>
-              )}
-            </div>
-          </div>
+  if (backendStatus === 'offline') {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
+        <div className="text-center p-8 bg-slate-800 rounded-xl shadow-2xl border border-red-500/50">
+          <h1 className="text-2xl font-bold text-red-500 mb-2">Backend Offline</h1>
+          <p className="text-slate-400 text-lg mb-4">Please start the FastAPI backend server.</p>
+          <code className="block bg-black/50 p-4 rounded text-sm font-mono text-green-400 text-left">
+            py -m uvicorn backend.app.main:app --reload --port 8000
+          </code>
         </div>
-      )}
-      <Dashboard />
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return <Dashboard />;
 }
 
 export default App;

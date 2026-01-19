@@ -37,6 +37,9 @@ class TrackObservation:
     track_id: int
     center_xy: Tuple[float, float]
     coco_class_name: str
+    # If False, we record positions/votes but do not count crossings yet.
+    # This helps avoid early false counts from unstable track IDs.
+    is_confirmed: bool = True
 
 
 @dataclass
@@ -93,17 +96,26 @@ class LineCrossingCounter:
     - Each track_id is counted at most once (first time it crosses).
     - Category is chosen as the most frequently observed mapped category for that track.
 
-    Direction:
-    - We also keep simple directional counters.
-    - By default, motion from top -> bottom across the line is counted as "in".
-      Motion from bottom -> top is counted as "out".
-    - Set invert_directions=True if your camera orientation is opposite.
+    Robustness notes:
+    - `line_margin_px` creates a "dead zone" around the line.
+    - Vehicles inside the margin are ignored (we maintain their previous state).
+    - Crossing is triggered only when a vehicle moves from cleanly ABOVE to cleanly BELOW (or vice-versa).
     """
 
-    def __init__(self, line: Line, *, invert_directions: bool = False):
+    def __init__(
+        self,
+        line: Line,
+        *,
+        invert_directions: bool = False,
+        line_margin_px: float = 0.0,
+    ):
         self._line = line
         self._invert_directions = invert_directions
-        self._last_y_by_track: Dict[int, float] = {}
+        self._margin_px = float(max(0.0, line_margin_px))
+        
+        # Track state: True if ABOVE line, False if BELOW line. None if unknown/in-margin initially.
+        self._is_above_by_track: Dict[int, bool] = {}
+        
         self._counted_track_ids: Set[int] = set()
         self._category_votes: Dict[int, Dict[VehicleCategory, int]] = {}
         self.counts = Counts()
@@ -126,44 +138,63 @@ class LineCrossingCounter:
             return None
         return max(votes.items(), key=lambda kv: kv[1])[0]
 
-    def _crossed(self, prev_y: float, y: float) -> bool:
-        # Count any crossing (either direction).
-        line_y = self._line.y_px
-        return (prev_y < line_y <= y) or (prev_y > line_y >= y)
-
-    def _direction(self, prev_y: float, y: float) -> CrossingDirection:
-        # y increasing means object moving down in the image.
-        is_in = y > prev_y
-        if self._invert_directions:
-            is_in = not is_in
-        return CrossingDirection.in_lane if is_in else CrossingDirection.out_lane
+    def _get_current_state(self, y: float) -> Optional[bool]:
+        """Returns True if ABOVE, False if BELOW, None if in MARGIN."""
+        line_y = float(self._line.y_px)
+        m = float(self._margin_px)
+        
+        if y < (line_y - m):
+            return True  # Above
+        if y > (line_y + m):
+            return False # Below
+        return None      # In margin
 
     def update(self, observations: Iterable[TrackObservation]) -> None:
         for obs in observations:
             self._vote_category(obs.track_id, obs.coco_class_name)
 
             y = float(obs.center_xy[1])
-            prev_y = self._last_y_by_track.get(obs.track_id)
-            self._last_y_by_track[obs.track_id] = y
+            current_is_above = self._get_current_state(y)
 
-            if prev_y is None:
+            # If inside margin, do nothing. We wait for it to emerge.
+            if current_is_above is None:
                 continue
+
+            prev_is_above = self._is_above_by_track.get(obs.track_id)
+            
+            # Update state for next time
+            self._is_above_by_track[obs.track_id] = current_is_above
+
+            # If we didn't have a previous state, we can't detect a crossing yet.
+            if prev_is_above is None:
+                continue
+
+            # If state hasn't changed, no crossing.
+            if prev_is_above == current_is_above:
+                continue
+
+            # State changed (Above -> Below OR Below -> Above)
             if obs.track_id in self._counted_track_ids:
-                continue
-            if not self._crossed(prev_y, y):
                 continue
 
             category = self._best_category(obs.track_id)
             if category is None:
                 continue
 
-            # Count this track once.
+            # Count this track
             self._counted_track_ids.add(obs.track_id)
             self.counts.total += 1
             self.counts.by_category[category] += 1
 
-            direction = self._direction(prev_y, y)
-            if direction == CrossingDirection.in_lane:
+            # Determine direction
+            # If default (not inverted): Top(low y) -> Bottom(high y) is IN.
+            # So Above(True) -> Below(False) is IN.
+            moved_in = (prev_is_above is True) and (current_is_above is False)
+            
+            if self._invert_directions:
+                moved_in = not moved_in
+
+            if moved_in:
                 self.counts.total_in += 1
                 self.counts.by_category_in[category] += 1
             else:

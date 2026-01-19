@@ -242,6 +242,26 @@ function Analytics({ data, loading }) {
               <span className="text-slate-400">Model:</span>
               <p className="text-slate-200 mt-1">{data.model || 'N/A'}</p>
             </div>
+
+            {data.tracking?.tracker && (
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <span className="text-slate-400">Tracker:</span>
+                <p className="text-slate-200 mt-1">{data.tracking.tracker}</p>
+              </div>
+            )}
+
+            {data.debug && (
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <span className="text-slate-400">Debug:</span>
+                <p className="text-slate-200 mt-1">
+                  frames_used={data.debug.frames_used} / frames_total={data.debug.frames_total}
+                </p>
+                <p className="text-slate-200 mt-1">
+                  vehicle_detections_total={data.debug.vehicle_detections_total}
+                </p>
+              </div>
+            )}
+
             {data.line_y !== undefined && (
               <div className="bg-slate-700/50 rounded-lg p-3">
                 <span className="text-slate-400">Line Position:</span>

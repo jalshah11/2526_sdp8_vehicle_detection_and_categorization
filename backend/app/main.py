@@ -22,6 +22,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.staticfiles import StaticFiles
+
+# Mount the output directory to serve the annotated video
+# The path should be absolute or relative to where uvicorn is run
+# We assume uvicorn is run from project root, so "backend/output" works.
+output_dir = Path("backend") / "output"
+output_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/output", StaticFiles(directory=str(output_dir)), name="output")
+
 
 @app.get("/health")
 def health() -> dict:
@@ -34,6 +43,16 @@ class VideoProcessRequest(BaseModel):
     line_y: Optional[float] = 0.5
     invert_directions: Optional[bool] = False
     conf: Optional[float] = 0.25
+
+    anchor: Optional[str] = "bottom"  # bottom | center
+
+    # Performance knobs:
+    # Keep defaults conservative to avoid missing crossings (counts going to 0).
+    # You can increase frame_stride / enable roi_band later for speed.
+    frame_stride: Optional[int] = 1
+    scale: Optional[float] = 0.75
+    roi_band: Optional[float] = 0.0
+    skip_video: Optional[bool] = False
 
 
 @app.post("/api/check-video-path")
@@ -113,11 +132,27 @@ def process_video(request: VideoProcessRequest) -> dict:
     cmd = [
         sys.executable,
         str(script_path),
-        "--video", str(video_path.resolve()),
-        "--model", request.model,
-        "--line-y", str(request.line_y),
-        "--conf", str(request.conf),
+        "--video",
+        str(video_path.resolve()),
+        "--model",
+        request.model,
+        "--line-y",
+        str(request.line_y),
+        "--conf",
+        str(request.conf),
+
+        "--anchor",
+        str(request.anchor or "bottom"),
+        "--frame-stride",
+        str(int(request.frame_stride or 1)),
+        "--scale",
+        str(float(request.scale or 1.0)),
+        "--roi-band",
+        str(float(request.roi_band or 0.0)),
     ]
+
+    if request.skip_video:
+        cmd.append("--skip-video")
     
     if request.invert_directions:
         cmd.append("--invert-directions")

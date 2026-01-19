@@ -1,6 +1,6 @@
 # Vehicle Detection and Categorization
 
-Last updated: 05-01-2026
+Last updated: 19-01-2026
 
 ## Lab-1 (08-12-2025)
 In Lab-1, I explored and learned about YOLO object detection models.
@@ -33,13 +33,19 @@ Summary of what was added/changed in Lab-4:
 - Dashboard to visualize analytics (category counts and in/out split) using charts
 - Frontend talks to the FastAPI backend using an Axios API client and shows backend health status
 
+## Lab-5/6 (12-01-2026 / 19-01-2026)
+Summary of what was added/changed:
+- Significantly improved performance and accuracy by implementing **ByteTrack** to replace the simple tracker.
+- Addressed unique counting issues by leveraging robust tracking state, ensuring vehicles are not double-counted or missed.
+- Optimized the counting logic with hysteresis to correctly handle slow-moving vehicles and occlusions.
+- Cleaned up deepsort dependencies and enabled annotated video playback in the dashboard.
+
 ## Code layout (high level)
-- `backend/scripts/count_video.py`: video inference entrypoint (detects vehicles, writes annotated video, writes counts JSON)
-- `backend/vehicle_counting/simple_tracker.py`: basic nearest-neighbor tracker (assigns stable-ish IDs)
-- `backend/vehicle_counting/line_counter.py`: virtual-line crossing counter (unique per track + in/out)
-- `backend/app/main.py`: FastAPI app (health + analytics + video processing endpoint)
-- `backend/tests/test_line_counter.py`: unit tests for line crossing + unique counting
-- `frontend/`: Vite + React frontend application
-- `frontend/src/components/VideoUpload.jsx`: video path + processing options form
-- `frontend/src/components/Analytics.jsx`: charts and analytics rendering
-- `frontend/src/services/api.js`: Axios client for backend API calls
+- `backend/scripts/count_video.py`: Core logic for video processing. Uses YOLOv8 + ByteTrack for detection and tracking.
+- `backend/vehicle_counting/line_counter.py`: Logic for counting unique vehicles crossing the line (handling hysteresis).
+- `backend/app/main.py`: FastAPI app serving the API and static outputs.
+- `backend/tests/test_line_counter.py`: Unit tests for the counting logic.
+- `frontend/`: Vite + React frontend application.
+- `frontend/src/components/VideoUpload.jsx`: Component for video path input and settings.
+- `frontend/src/components/Analytics.jsx`: Component for visualizing traffic stats (Charts/Tables).
+- `frontend/src/services/api.js`: API client for backend communication.
