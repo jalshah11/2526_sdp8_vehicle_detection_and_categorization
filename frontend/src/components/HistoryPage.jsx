@@ -50,7 +50,9 @@ function HistoryPage() {
   };
 
   const formatDate = (isoStr) => {
-    const d = new Date(isoStr);
+    // Backend saves UTC but doesn't output 'Z'. Appending 'Z' forces JS to treat it as UTC and convert to local time.
+    const dateArg = isoStr.endsWith('Z') ? isoStr : `${isoStr}Z`;
+    const d = new Date(dateArg);
     return d.toLocaleString(undefined, {
       dateStyle: 'medium',
       timeStyle: 'short',
