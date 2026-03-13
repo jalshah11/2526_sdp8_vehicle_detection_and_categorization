@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getHistory, deleteHistoryRecord } from '../services/authApi';
 import { useAuth } from '../context/AuthContext';
+import { generatePDFReport, generateCSVReport } from '../utils/reportGenerator';
 
 const VEHICLE_ICONS = {
   car: '🚗',
@@ -189,9 +190,29 @@ function HistoryPage() {
                           </span>
                         </div>
 
+                        {/* Download Controls */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); generateCSVReport(record); }}
+                          className="p-1.5 text-slate-500 hover:text-green-400 transition-colors hidden sm:block"
+                          title="Download CSV Data"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); generatePDFReport(record); }}
+                          className="p-1.5 text-slate-500 hover:text-blue-400 transition-colors hidden sm:block"
+                          title="Download PDF Report"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 6H7a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+
                         {/* Expand chevron */}
                         <svg
-                          className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                          className={`w-5 h-5 text-slate-400 transition-transform ml-2 ${isExpanded ? 'rotate-180' : ''}`}
                           fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
