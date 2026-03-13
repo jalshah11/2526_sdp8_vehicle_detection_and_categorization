@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 .venv/
 venv/
 frontend/.vite/
@@ -8,3 +8,4 @@ __pycache__/
 backend/output/
 WARP.md
 yolov8*.pt
+.env

@@ -4,6 +4,16 @@ numpy>=1.24
 fastapi>=0.110
 uvicorn[standard]>=0.27
 pydantic>=2.0
+pydantic[email]>=2.0
 
 # Tracker dependencies
 lapx>=0.5.5
+
+# Auth & Database
+motor>=3.3.0
+pymongo>=4.6.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-dotenv>=1.0.0
+python-multipart>=0.0.9
+aiosmtplib>=2.0

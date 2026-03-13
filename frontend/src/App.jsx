@@ -1,12 +1,30 @@
 import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './components/Dashboard';
+import LoginPage from './components/auth/LoginPage';
+import RegisterPage from './components/auth/RegisterPage';
+import VerifyEmailPage from './components/auth/VerifyEmailPage';
+import ForgotPasswordPage from './components/auth/ForgotPasswordPage';
+import ResetPasswordPage from './components/auth/ResetPasswordPage';
+import ProfilePage from './components/auth/ProfilePage';
+import HistoryPage from './components/HistoryPage';
 import { healthCheck } from './services/api';
 
-function App() {
+// ── Protected Route wrapper ────────────────────────────────────────────────
+function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+// ── Main app with routing ─────────────────────────────────────────────────
+function AppRoutes() {
   const [backendStatus, setBackendStatus] = useState('checking');
 
   useEffect(() => {
-    // Simple health check to ensure backend is reachable
     healthCheck()
       .then(() => setBackendStatus('online'))
       .catch(() => setBackendStatus('offline'));
@@ -26,7 +44,55 @@ function App() {
     );
   }
 
-  return <Dashboard />;
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+      {/* Protected routes */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <HistoryPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
 export default App;
