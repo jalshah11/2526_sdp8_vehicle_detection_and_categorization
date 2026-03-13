@@ -3,26 +3,33 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Always start with a fresh session on every app launch
-  const [token, setToken] = useState(null);
-  const [user, setUser] = useState(null);
+  // Use sessionStorage so refreshing keeps the user logged in, but closing the tab logs them out.
+  const [token, setToken] = useState(() => sessionStorage.getItem('va_token'));
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('va_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
-    // Clear any persisted auth data so restarting the app logs the user out
+    // Clean up old localStorage leftover from previous app versions just in case
     localStorage.removeItem('va_token');
     localStorage.removeItem('va_user');
   }, []);
 
   const login = useCallback((tokenStr, userData) => {
-    localStorage.setItem('va_token', tokenStr);
-    localStorage.setItem('va_user', JSON.stringify(userData));
+    sessionStorage.setItem('va_token', tokenStr);
+    sessionStorage.setItem('va_user', JSON.stringify(userData));
     setToken(tokenStr);
     setUser(userData);
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('va_token');
-    localStorage.removeItem('va_user');
+    sessionStorage.removeItem('va_token');
+    sessionStorage.removeItem('va_user');
     setToken(null);
     setUser(null);
   }, []);

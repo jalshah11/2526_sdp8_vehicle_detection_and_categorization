@@ -9,7 +9,7 @@ const api = axios.create({
 
 // ── Auto-inject Bearer token on every request ─────────────────────────────
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('va_token');
+  const token = sessionStorage.getItem('va_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
