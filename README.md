@@ -52,6 +52,7 @@ Summary of what was added/changed:
 - Implemented OTP-based Email Verification on signup, and Forgot/Reset Password flows using Gmail SMTP.
 - Created a comprehensive User Profile page allowing users to update their username, upload a profile picture (saved as a base64 Data URI), change their password, and securely delete their account.
 - Added an Analytics History feature so authenticated users can save and view their past video processing results.
+- Built a frontend-driven PDF and CSV Report generator using `jspdf` to allow users to export highly detailed analytics documents.
 
 ## Code layout (high level)
 - `backend/scripts/count_video.py`: Core logic for video processing. Uses YOLOv8 + ByteTrack for detection and tracking.
