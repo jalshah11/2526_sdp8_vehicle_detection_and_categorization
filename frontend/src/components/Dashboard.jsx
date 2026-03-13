@@ -77,11 +77,15 @@ function Dashboard() {
                 className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-700 transition-colors"
                 title="View Profile"
               >
-                <div className="w-7 h-7 bg-blue-600/30 border border-blue-500/40 rounded-full flex items-center justify-center">
-                  <span className="text-blue-300 text-xs font-bold uppercase">
-                    {user.username?.charAt(0) || user.email?.charAt(0)}
-                  </span>
-                </div>
+                {user.avatar ? (
+                  <img src={user.avatar} alt="Avatar" className="w-7 h-7 rounded-full object-cover border border-blue-500/40" />
+                ) : (
+                  <div className="w-7 h-7 bg-blue-600/30 border border-blue-500/40 rounded-full flex items-center justify-center">
+                    <span className="text-blue-300 text-xs font-bold uppercase">
+                      {user.username?.charAt(0) || user.email?.charAt(0)}
+                    </span>
+                  </div>
+                )}
                 <span className="text-slate-300 text-sm font-medium hidden sm:inline">{user.username}</span>
               </button>
             )}

@@ -22,6 +22,7 @@ class UserPublic(BaseModel):
     email: str
     created_at: datetime
     is_verified: bool = False
+    avatar: Optional[str] = None
 
 
 class UserInDB(BaseModel):

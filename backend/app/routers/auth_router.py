@@ -27,11 +27,12 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 def _doc_to_public(doc: dict) -> UserPublic:
     return UserPublic(
-        id=str(doc["_id"]),
-        username=doc["username"],
-        email=doc["email"],
+        id=str(doc.get("_id", str(doc.get("id", "")))),
+        username=doc.get("username", ""),
+        email=doc.get("email", ""),
         created_at=doc.get("created_at", datetime.utcnow()),
         is_verified=doc.get("is_verified", False),
+        avatar=doc.get("avatar")
     )
 
 
