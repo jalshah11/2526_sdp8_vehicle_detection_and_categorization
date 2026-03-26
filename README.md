@@ -1,6 +1,6 @@
 # Vehicle Detection & Categorization
 
-A traffic analytics system that processes recorded video footage to detect, track, and count vehicles crossing a configurable virtual line — with direction awareness (in/out), category breakdown (car, bike, bus, truck), and a full-featured web dashboard. Built as part of an 8th semester Software Design Project.
+A traffic analytics system that processes recorded video footage to detect, track, and count vehicles crossing a configurable virtual line — with direction awareness (in/out), category breakdown (car, bike, bus, truck), and a full-featured web dashboard. Built as part of a 6th semester Software Design Project.
 
 > **Development history & lab-wise progress:** see [`Learning_and_Planning/Development_History.md`](./Learning_and_Planning/Development_History.md)
 
